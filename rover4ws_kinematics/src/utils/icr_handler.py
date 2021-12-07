@@ -1,5 +1,3 @@
-from numpy.core.defchararray import array
-from numpy.core.shape_base import vstack
 from yaml.loader import SafeLoader
 import yaml
 import os

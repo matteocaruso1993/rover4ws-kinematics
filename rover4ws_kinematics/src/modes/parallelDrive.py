@@ -1,4 +1,4 @@
-from base import BaseKinematics
+from .base import BaseKinematics
 import numpy as np
 
 

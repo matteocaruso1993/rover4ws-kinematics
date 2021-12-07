@@ -1,5 +1,5 @@
-from base import BaseKinematics
-from icr_handler import IcrHandler
+from .base import BaseKinematics
+from ..utils.icr_handler import IcrHandler
 import numpy as np
 
 class OuterAckermann(BaseKinematics):
