@@ -204,7 +204,7 @@ class IcrHandler:
         self._computeCarLikeConstraints()
         self._computeSymmetricAckermannConstraints()
 
-    def validateIcr(self,icr):
+    def validateIcr(self,icr, print_output=False):
         self._last_commanded_icr = icr
         valid, new_pt, d = self._isIcrValid(icr)
         self._last_projected_icr = new_pt
@@ -385,11 +385,12 @@ class IcrHandler:
         idx = np.argmin(distances_elected)
         return valid, points_elected[idx], distances_elected[idx]            
 
-    def loadConfig(self,config_path):
+    def loadConfig(self,config_path,print_output=False):
         if config_path is None:
             par_dir = os.path.dirname(__file__)
             config_filename = os.path.abspath(os.path.join(par_dir,'..','..','config','config.yaml'))
-            print(config_filename)
+            if print_output:
+                print(config_filename)
 
             try:
                 with open(config_filename,'r') as f:

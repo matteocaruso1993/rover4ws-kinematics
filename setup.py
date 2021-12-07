@@ -19,7 +19,7 @@ setup(name='rover4ws_kinematics',
       license="GPLv3",
       packages=find_packages(),
       package_data = {'rover4ws_kinematics': ['config/config.yaml']},
-      install_requires=['numpy', 'matplotlib', 'scikit-spatial', 'shapely','yaml'],
+      install_requires=['numpy', 'matplotlib', 'scikit-spatial', 'shapely','pyyaml'],
       zip_safe=False,
       include_package_data=True,
       python_requires='>=3.6'

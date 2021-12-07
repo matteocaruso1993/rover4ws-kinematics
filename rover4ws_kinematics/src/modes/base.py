@@ -28,11 +28,12 @@ class BaseKinematics:
         self.loadConfig()
         self.computeInverseKinematics(self._last_commanded_speed)
  
-    def loadConfig(self):
+    def loadConfig(self,print_output=False):
         if self.config_path is None:
             par_dir = os.path.dirname(__file__)
             config_filename = os.path.abspath(os.path.join(par_dir,'..','..','config','config.yaml'))
-            print(config_filename)
+            if print_output:
+                print(config_filename)
 
             try:
                 with open(config_filename,'r') as f:
@@ -75,8 +76,9 @@ class BaseKinematics:
         max_computed_speed = np.max(np.abs(self._current_wheel_speed))
         if not max_computed_speed == 0:
             max_speed_admissible = self.config['max_wheel_speed']
-            scale_factor = max_speed_admissible/max_computed_speed
-            self._current_wheel_speed*=scale_factor
+            if max_computed_speed > max_speed_admissible:
+                scale_factor = max_speed_admissible/max_computed_speed
+                self._current_wheel_speed*=scale_factor
 
     def _applyWheelsHomingPosition(self):
         self._v_wheels[:,:] = 0
@@ -186,7 +188,6 @@ class BaseKinematics:
             vel_versors = (self._v_wheels.T/norm_vs).T
             for i in range(len(self._current_wheel_speed)):
                 key = self._wheels_mapping[i]
-                print(key)
                 limits = self.config["wheels_limits"][key]
 
                 if self._current_steer[i] < limits[0]:
