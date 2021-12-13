@@ -2,13 +2,12 @@ len_x_leg: 0.36002113821761267
 len_y_leg: 0.22496617531160523
 
 drive_mode: "Ackermann_symmetric"
-max_wheel_speed: 4 #rad/s
 wheel_radius: 0.085
 wheel_width: 0.01
 
-angle_crit: 0.58751447813558321651
+angle_crit: 0.5235987755982988 #0.58751447813558321651
 angle_max: 1.6057029118347832
-max_wheel_speed: 1
+max_wheel_speed: 5
 
 wheels_limits: 
   fl_wheel: [-1.6057029118347832, 0.58751447813558321651]

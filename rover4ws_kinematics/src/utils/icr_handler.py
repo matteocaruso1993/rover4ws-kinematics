@@ -210,7 +210,7 @@ class IcrHandler:
         self._last_projected_icr = new_pt
         self._last_valid = valid
 
-        if not valid:
+        if not valid and print_output:
             print("Warning: Commanded ICR doesn't match constraints")
 
     def getProjectedIcr(self):
@@ -402,7 +402,7 @@ class IcrHandler:
                 pass
 
 
-    def show(self, input_angles,plot = True, plot_axis=False):
+    def show(self, input_angles,plot = True, plot_axis=False,fig=None,ax=None):
         chassis_scale = 1
         chassis = Patch.Rectangle((-chassis_scale*self.config['len_x_leg'],-chassis_scale*self.config['len_y_leg']), chassis_scale*2*self.config['len_x_leg'],chassis_scale*2*self.config['len_y_leg'],color='k', alpha=0.3)
         wheel_fl = Patch.Rectangle((-self.config['len_x_leg']-self.config['wheel_radius']/2,self.config['len_y_leg']-self.config['wheel_width']), self.config['wheel_radius'],2*self.config['wheel_width'],color='r', alpha=1)
@@ -414,8 +414,9 @@ class IcrHandler:
         wheels_steer = np.degrees(input_angles)
 
         if plot:
-            fig = plt.figure()
-            ax = fig.add_subplot(1, 1, 1)
+            if fig is None and ax is None:
+                fig = plt.figure()
+                ax = fig.add_subplot(1, 1, 1)
             ax.grid(True)
             for n, wheel in enumerate(wheels):
                 wheel_centre = (wheel.xy[0] + wheel.get_width()/2, wheel.xy[1] + wheel.get_height()/2)
@@ -466,9 +467,9 @@ class IcrHandler:
 
 
             #ax.plot(self._last_computed_icr[0], self._last_computed_icr[1],'or')
-            ax.set_xlim([-3,3])
-            ax.set_ylim([-3,3])
-            ax.axis("equal")
+            #ax.set_xlim([-3,3])
+            #ax.set_ylim([-3,3])
+            #ax.axis("equal")
             
 
             ax.scatter(self._last_commanded_icr[0],self._last_commanded_icr[1],label='commanded ICR',color='r')
@@ -490,11 +491,27 @@ class IcrHandler:
                         tmp = np.vstack((tmp, np.array(line.point) + l_len*np.array(line.direction)))
                         ax.plot(tmp[:,0],tmp[:,1],'-.',label = '%s %s constraint'%(mode,key),color='k')
 
-            ax.legend()
+            #ax.legend()
             plt.show()
 
     def _updateOriginalAxis(self,ax):
-        pass
+        data_fill_top = np.array([self.data["intersections"]["top"][0],self.data["intersections"]["top"][1]]).T
+        data_fill_bottom = np.array(self.data["intersections"]["bottom"]).T
+
+        l_len = 10
+        for key in self.data.keys():
+            if "wheel_" in key:
+                pt = self.data[key]["position"]
+                dir = self.data[key]["direction"]
+                pt_to_plot = np.vstack((pt,pt+10*np.array(dir)))
+                if key == "wheel_fl" or key =="wheel_bl":
+                    data_fill_top = np.vstack((data_fill_top,pt+l_len*np.array(dir)))
+                else:
+                    data_fill_bottom = np.vstack((data_fill_bottom,pt+l_len*np.array(dir)))
+                ax.plot(-pt_to_plot[:,1],pt_to_plot[:,0],"-k")
+            
+        ax.fill(-data_fill_top[:,1],data_fill_top[:,0], alpha=0.5,color='g')
+        ax.fill(-data_fill_bottom[:,1],data_fill_bottom[:,0], alpha=0.5,color='g')
 
     
 if __name__ == '__main__':

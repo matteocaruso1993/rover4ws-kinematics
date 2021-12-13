@@ -2,9 +2,10 @@ import numpy as np
 import os
 import yaml
 from yaml.loader import SafeLoader
+import matplotlib as mpl
+mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib.patches as Patch
-import matplotlib as mpl
 from copy import deepcopy
 
 #Abstact base class for kinematics
@@ -76,6 +77,7 @@ class BaseKinematics:
         max_computed_speed = np.max(np.abs(self._current_wheel_speed))
         if not max_computed_speed == 0:
             max_speed_admissible = self.config['max_wheel_speed']
+            print(self.config['max_wheel_speed'])
             if max_computed_speed > max_speed_admissible:
                 scale_factor = max_speed_admissible/max_computed_speed
                 self._current_wheel_speed*=scale_factor
@@ -173,14 +175,22 @@ class BaseKinematics:
             ax.set_xlim([-2,2])
             ax.set_ylim([-2,2])
             plt.show()
+            plt.pause(.1)
         
         return (chassis, wheels)
 
     def _postProcessWheelsCommands(self):
-        self._validateWheelsState()
-        self._clipWheelsSpeed()
+        flag = self._validateWheelsState()
+        if flag:
+            self._clipWheelsSpeed()
+            self._last_steer = self._current_steer
+            self._last_wheel_speed = self._current_wheel_speed
+        else:
+            self._current_steer = self._last_steer
+            self._current_wheel_speed = self._last_wheel_speed
 
-    def _validateWheelsState(self):
+    def _validateWheelsState(self, print_output = False):
+        valid_steer = True
         if self._homing_requested:
             pass
         else:
@@ -196,10 +206,17 @@ class BaseKinematics:
                     self._current_steer[i] -= np.pi
                 
                 if self._current_steer[i] >= limits[0] and self._current_steer[i]<=limits[1]:
-                    print("valid steer angle")
+                    valid_steer = True    
                 else:
-                    print("Invalid steer angle")
+                    valid_steer = False
+                    break
+                if print_output:
+                    if valid_steer:
+                        print("valid steer angle")
+                    else:
+                        print("Invalid steer angle")
 
+                
                 wheel_angle_versors = np.array([np.cos(self._current_steer[i]), np.sin(self._current_steer[i])])
 
                 res = np.dot(vel_versors[i,:2], wheel_angle_versors)
@@ -209,6 +226,8 @@ class BaseKinematics:
                     self._current_wheel_speed[i]*=-1
                 else:
                     print('There is some error')
+
+        return valid_steer
 
     def reset(self):
         self._current_steer = np.zeros((4,), dtype=float)
