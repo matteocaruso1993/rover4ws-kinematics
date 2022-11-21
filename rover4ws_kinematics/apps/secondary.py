@@ -41,6 +41,8 @@ class SecondApp(tk.Tk):
         self.navi_frame.pack(side=tk.TOP,fill=tk.X)
         self.fig = Figure()
         self.ax = self.fig.add_subplot(111)
+        self.ax.set_xlim([-3,3])
+        self.ax.set_ylim([-3,3])
         self.ax.plot([],[])
         self.canv = FigureCanvasTkAgg(self.fig, master = self.visualization_frame)
         self.canv.draw()
@@ -114,9 +116,11 @@ class SecondApp(tk.Tk):
     def updateChart(self):
         self.ax.clear()
         self.icr_handler.validateIcr(self.registered_icr)
+        self.ax.axis('equal')
+        self.ax.set_xlim([-2,2])
+        self.ax.set_ylim([-2, 2])
         self.icr_handler.show(self.input_angles, fig=self.fig, ax=self.ax)
         self.canv.draw()
-        #self.ax.axis('equal')
         self.visualization_frame.after(self._chart_update_period, self.updateChart)
 
     def initializeExternalLib(self):
