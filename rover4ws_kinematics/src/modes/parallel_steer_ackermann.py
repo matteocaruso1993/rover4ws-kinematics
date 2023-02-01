@@ -4,11 +4,11 @@ import numpy as np
 
 
 class ParallelAckermann(BaseKinematics):
-    def __init__(self, config_path=None):
+    def __init__(self, config_path=None, config_override=None):
         mode = "outer_ack"
-        self._icr_handler = IcrHandler(mode=mode)
+        self._icr_handler = IcrHandler(mode=mode, config_path=config_path, config_override=config_override)
         self._icr_handler.initialize()
-        super().__init__(mode, config_path=config_path)
+        super().__init__(mode=mode, config_path=config_path, config_override=self._icr_handler.config)
 
     def computeInverseKinematics(self, in_speed_high_level):
         return super().computeInverseKinematics(in_speed_high_level)

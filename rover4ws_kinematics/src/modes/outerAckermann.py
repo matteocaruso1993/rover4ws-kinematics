@@ -3,11 +3,11 @@ from ..utils.icr_handler import IcrHandler
 import numpy as np
 
 class OuterAckermann(BaseKinematics):
-    def __init__(self, config_path=None):
+    def __init__(self, config_path=None, config_override=None):
         mode = "outer_ack"
-        self._icr_handler = IcrHandler(mode=mode)
+        self._icr_handler = IcrHandler(mode=mode, config_path=config_path, config_override=config_override)
         self._icr_handler.initialize()
-        super().__init__(mode, config_path=config_path)
+        super().__init__(mode=mode, config_path=config_path, config_override=self._icr_handler.config)
 
     def _constrainIcr(self, x, y):
         #Here we apply the symmetric-ackermann constraint

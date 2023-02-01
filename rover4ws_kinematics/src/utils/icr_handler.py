@@ -12,7 +12,7 @@ import shapely.geometry as ShGeom
 
 
 class IcrHandler:
-    def __init__(self, config_path=None, mode=None) -> None:
+    def __init__(self, config_path=None, mode=None, config_override=None) -> None:
         self.config_path = None
         
         self.config = None
@@ -32,7 +32,7 @@ class IcrHandler:
         self.data["wheel_br"] = dict()
         self.data["intersections"] = dict()
 
-        self.loadConfig(config_path=config_path)
+        self.loadConfig(config_path=config_path, config_override=config_override)
 
     def setMode(self, mode):
         if mode not in self._valid_modes:
@@ -385,8 +385,8 @@ class IcrHandler:
         idx = np.argmin(distances_elected)
         return valid, points_elected[idx], distances_elected[idx]            
 
-    def loadConfig(self,config_path,print_output=False):
-        if config_path is None:
+    def loadConfig(self,config_path,config_override=None,print_output=False):
+        if config_path is None and config_override is None:
             par_dir = os.path.dirname(__file__)
             config_filename = os.path.abspath(os.path.join(par_dir,'..','..','config','config.yaml'))
             if print_output:
@@ -400,6 +400,15 @@ class IcrHandler:
 
             except:
                 pass
+            
+        elif config_override is not None:
+            self.config = config_override
+        elif config_override is None and self.config_path is not None:
+            with open(self.config_path,'r') as f:
+                data = yaml.load(f, Loader=SafeLoader)
+                self.config = data
+        else:
+            print("Something is missing...")
 
 
     def show(self, input_angles,plot = True, plot_axis=False,fig=None,ax=None):

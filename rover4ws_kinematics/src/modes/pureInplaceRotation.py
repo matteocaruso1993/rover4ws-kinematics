@@ -4,9 +4,9 @@ import numpy as np
 
 
 class InplaceRotation(BaseKinematics):
-    def __init__(self, config_path=None):
+    def __init__(self, config_path=None, config_override=None):
         mode = 'in_place'
-        super().__init__(mode, config_path=config_path)
+        super().__init__(mode=mode, config_path=config_path, config_override=config_override)
 
     def _applyWheelsHomingPosition(self):
         self._v_wheels[:,:] = 0

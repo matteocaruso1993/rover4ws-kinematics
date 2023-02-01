@@ -13,7 +13,7 @@ from copy import deepcopy
 
 
 class BaseKinematics:
-    def __init__(self, mode, config_path = None):
+    def __init__(self, mode, config_path = None, config_override=None):
         self.mode = mode
         self.config_path =  config_path
         self.config = None
@@ -23,14 +23,15 @@ class BaseKinematics:
             2:"bl_wheel",
             3:"br_wheel"
         }
+        self._pos_wheels = None
 
         self.reset()
 
-        self.loadConfig()
+        self.loadConfig(config_override=config_override)
         self.computeInverseKinematics(self._last_commanded_speed)
  
-    def loadConfig(self,print_output=False):
-        if self.config_path is None:
+    def loadConfig(self,config_override=None, print_output=False):
+        if self.config_path is None and config_override is None:
             par_dir = os.path.dirname(__file__)
             config_filename = os.path.abspath(os.path.join(par_dir,'..','..','config','config.yaml'))
             if print_output:
@@ -45,9 +46,30 @@ class BaseKinematics:
             except:
                 pass
 
+            
+        elif config_override is not None:
+            self.config = config_override
+        elif config_override is None and self.config_path is not None:
+            with open(self.config_path,'r') as f:
+                data = yaml.load(f, Loader=SafeLoader)
+                self.config = data
+        else:
+            print("Something is missing...")
+        
+        self.generateWheelsPosition()
+
+
     def computeForwardKinematics(self, in_speed_wheels, in_steer):
         self.last_commanded_wheels_speed = in_speed_wheels
-        pass
+
+
+    def generateWheelsPosition(self):
+        pos_wheels = np.array([[self.config['len_x_leg'], +self.config['len_y_leg'], 0],
+                                    [self.config['len_x_leg'], -self.config['len_y_leg'], 0],
+                                    [-self.config['len_x_leg'], +self.config['len_y_leg'], 0],
+                                    [-self.config['len_x_leg'], -self.config['len_y_leg'], 0]])
+        self._pos_wheels = pos_wheels
+
 
     def computeInverseKinematics(self, in_speed_high_level):
         in_speed_high_level = self._preprocessHighLevelSpeeds(in_speed_high_level)
@@ -61,6 +83,7 @@ class BaseKinematics:
         else:
             self._applyWheelsCommands(in_speed_high_level)
                   
+
     def _preprocessHighLevelSpeeds(self,high_level_speed):
         if not np.any(high_level_speed):
             #Homing requested
@@ -73,6 +96,7 @@ class BaseKinematics:
         self._last_commanded_speed = high_level_speed
         return high_level_speed
 
+
     def _clipWheelsSpeed(self):
         max_computed_speed = np.max(np.abs(self._current_wheel_speed))
         if not max_computed_speed == 0:
@@ -82,26 +106,23 @@ class BaseKinematics:
                 scale_factor = max_speed_admissible/max_computed_speed
                 self._current_wheel_speed*=scale_factor
 
+
     def _applyWheelsHomingPosition(self):
         self._v_wheels[:,:] = 0
         self._current_wheel_speed[:] = 0
         self._current_steer[:] = 0
 
+
     def _applyWheelsCommands(self,in_speed_high_level):
-        pos_wheels = np.array([[self.config['len_x_leg'], +self.config['len_y_leg'], 0],
-                                    [self.config['len_x_leg'], -self.config['len_y_leg'], 0],
-                                    [-self.config['len_x_leg'], +self.config['len_y_leg'], 0],
-                                    [-self.config['len_x_leg'], -self.config['len_y_leg'], 0]])
         pos_ICR = self._last_valid_icr
-
-
         for i in range(len(self._v_wheels)):
-            self._v_wheels[i,:] = np.cross(np.array([[0,0,in_speed_high_level[2]]]), pos_wheels[i,:]-pos_ICR)
+            self._v_wheels[i,:] = np.cross(np.array([[0,0,in_speed_high_level[2]]]), self._pos_wheels[i,:]-pos_ICR)
             self._current_wheel_speed[i] = np.linalg.norm(self._v_wheels[i,:])/self.config['wheel_radius']
             #if self._v_wheels[i,0]== 0 and self._v_wheels[i,1] == 0:
             #    self._current_steer[i] = self._last_steer[i]
             #else:
             self._current_steer[i] = np.arctan(self._v_wheels[i,1]/self._v_wheels[i,0])
+
 
     def _computeICR(self, in_speed_high_level):
 
@@ -113,10 +134,13 @@ class BaseKinematics:
 
         return (Rx,Ry,R)
 
+
     def _constrainIcr(self,x,y):
         #No constraint
         self._last_computed_icr = np.array([x, y,0])
+        
         return (x,y)
+
 
     def show(self, plot=True,show_frame = False, draw_wheels_arrows=False,draw_computed_wheel_lin_speed=False):
         chassis_scale = 1
@@ -179,6 +203,7 @@ class BaseKinematics:
         
         return (chassis, wheels)
 
+
     def _postProcessWheelsCommands(self):
         flag = self._validateWheelsState()
         if flag:
@@ -188,6 +213,7 @@ class BaseKinematics:
         else:
             self._current_steer = self._last_steer
             self._current_wheel_speed = self._last_wheel_speed
+
 
     def _validateWheelsState(self, print_output = False):
         valid_steer = True
@@ -229,6 +255,7 @@ class BaseKinematics:
 
         return valid_steer
 
+
     def reset(self):
         self._current_steer = np.zeros((4,), dtype=float)
         self._last_steer = np.zeros((4,), dtype=float)
@@ -244,6 +271,7 @@ class BaseKinematics:
         self._last_valid_icr = None
         self._homing_requested = True
 
+
     def kinematicsStep(self, in_high_level_speeds, update_speeds=True, get_output=False):
         self.computeInverseKinematics(in_high_level_speeds)
         self._postProcessWheelsCommands()
@@ -255,8 +283,11 @@ class BaseKinematics:
             return (self._current_wheel_speed,self._current_steer)
         else:
             return None
+
+
     def updateHighLevelSpeeds(self,high_level_speeds):
         pass
+
 
 if __name__ == '__main__':
     import time

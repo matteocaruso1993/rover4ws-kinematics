@@ -3,9 +3,9 @@ import numpy as np
 
 
 class LateralDrive(BaseKinematics):
-    def __init__(self, config_path=None):
+    def __init__(self, config_path=None, config_override=None):
         mode = "parallel"
-        super().__init__(mode, config_path=config_path)
+        super().__init__(mode=mode, config_path=config_path, config_override=config_override)
 
     def _computeICR(self, in_speed_high_level):
         return (None, None, None) #To- DO
