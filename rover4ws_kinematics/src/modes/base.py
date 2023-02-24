@@ -101,7 +101,7 @@ class BaseKinematics:
         max_computed_speed = np.max(np.abs(self._current_wheel_speed))
         if not max_computed_speed == 0:
             max_speed_admissible = self.config['max_wheel_speed']
-            print(self.config['max_wheel_speed'])
+            #print(self.config['max_wheel_speed'])
             if max_computed_speed > max_speed_admissible:
                 scale_factor = max_speed_admissible/max_computed_speed
                 self._current_wheel_speed*=scale_factor
