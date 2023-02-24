@@ -1,23 +1,40 @@
 # rover4ws-kinematics
+This python repository aims at providing useful functionalities to be used to compute the kinematics of a four wheel steering rover, which is subjected to steer lower and upper joint limits. Moreover, the package allows for multiple driving mode selection:
+
   * Symmetric Ackermann Steering;
-This repository aims at providing useful functionalities to be used to compute the Kinematics of a four wheel steering rover, which is subjected to steer lower and upper joint limits. Moreover, the package allows for multiple driving mode selection:
   * Car-Like Ackermann Steering;
   * In-Place rotation;
   * Parallel Drive;
   * Lateral Drive;
   * Inner Ackermann;
-  * General Ackermann.
   * Outer Ackermann;
+  * General Ackermann.
+  
 
+The kinematics is computed through the ICR projection procedure.
 
-The kinematics is compute through ICR projection procedure.
-## Setup
-
+### Package installation and Virtual environment setup
 In order to being able to use this package, it is required to be installed as a python package. To do so, run:
-
-``` pip install -e . ```
+```
+python3.8 -m venv ~/p38Venv
+mkdir -p ~/repositories/python
+cd ~/repositories/python
+git clone https://github.com/matteocaruso1993/rover4ws-kinematics
+cd rover4ws-kinematics
+source ~/p38Venv/bin/activate
+pip install -r requirements.txt
+pip install -e . 
+deactivate
+```
 ## Examples
-
-### Script
-
-### Desktop App Visualization
+#### Scripts
+```
+source ~/p38Venv/bin/activate
+cd ~/repositories/python/rover4ws-kinematics
+python rover4ws_kinematics/examples/test_carlike.py
+```
+#### Desktop App Visualization
+```
+source ~/p38Venv/bin/activate
+python -m rover4ws_kinematics.apps
+```
