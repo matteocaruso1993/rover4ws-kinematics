@@ -38,3 +38,9 @@ python rover4ws_kinematics/examples/test_carlike.py
 source ~/p38Venv/bin/activate
 python -m rover4ws_kinematics.apps
 ```
+
+![Kinematics App](/rover4ws_kinematics/resources/app.png?raw=true "Kinematics app")
+
+
+## Notes 
+This package is used as the basis for the [kinematics ROS package](https://github.com/matteocaruso1993/ros-rover4ws-kinematics)
